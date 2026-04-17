@@ -32,6 +32,10 @@
                         brand: {
                             50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 500: '#f43f5e',
                             600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337',
+                        },
+                        accent: {
+                            500: '#d97706',
+                            600: '#b45309',
                         }
                     }
                 }
@@ -41,8 +45,6 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #fff1f2; -webkit-tap-highlight-color: transparent; }
-        .alert-low-stock { background-color: #fee2e2 !important; border-color: #fca5a5 !important; }
-        .alert-low-stock span.estoque-numero, .alert-low-stock input { color: #991b1b !important; }
         .alert-parado { background-color: #fff7ed !important; border-color: #fdba74 !important; }
         .is-draft { border: 2px dashed #3b82f6 !important; background-color: #eff6ff !important; }
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -677,7 +679,7 @@
             const margem = parseFloat(p.margem) || 0; 
             const desconto = parseFloat(p.desconto) || 0;
 
-            // Custo Total = Custo Base + Custo Variável + (Custo Base * Taxas)
+            // Custo Total (Base + Variável + Taxas baseadas no Custo)
             const valorTaxas = custoBase * (taxasVar / 100);
             const custoTotal = custoBase + custoVar + valorTaxas;
             
@@ -687,16 +689,16 @@
             // Margem / Markup Divisor
             const taxaMargem = margem / 100;
             if (taxaMargem > 0 && taxaMargem < 1) {
-                valorSugerido = custoTotal / (1 - taxaMargem);
                 markup = 1 / (1 - taxaMargem); 
+                valorSugerido = custoTotal * markup;
             } else if (taxaMargem >= 1) {
+                markup = 2; // Fallback se a margem for >= 100%
                 valorSugerido = custoTotal * 2;
-                markup = 2;
             }
 
             // O Valor Sugerido (Preço Final Desejado de Venda)
             let precoFinal = parseFloat(p.precoFinal);
-            if (isNaN(precoFinal) || precoFinal <= 0) {
+            if (isNaN(precoFinal) || precoFinal <= 0 || p.precoFinal === '') {
                 precoFinal = valorSugerido; 
             }
 
@@ -963,29 +965,29 @@
                 else btnExcluir.classList.add('hidden');
             }
 
-            const hoje = new Date();
-            const trintaDias = 30 * 24 * 60 * 60 * 1000;
+            const { produtosAnalisados } = window.analisarEstoqueInteligente();
 
             filtered.slice().reverse().forEach(p => {
                 const pricing = window.calcularPricing(p);
+                const analise = produtosAnalisados.find(x => x.id === p.id);
                 
-                let ultimaVendaStr = null;
-                let vendasDesteProduto = (window.dbVendas || []).filter(v => v.pid === p.id);
-                if (vendasDesteProduto.length > 0) {
-                    let vendasOrdenadas = [...vendasDesteProduto].sort((a, b) => new Date(b.data) - new Date(a.data));
-                    ultimaVendaStr = vendasOrdenadas[0].data;
-                }
+                const estoqueInt = parseInt(p.estoque) || 0;
+                const isLowStock = (estoqueInt <= 3) && (!p.isDraft);
                 
-                let dataRef = ultimaVendaStr ? new Date(ultimaVendaStr) : new Date(p.dataCadastro || 0);
-                let isParado = (parseInt(p.estoque) > 0) && !p.isDraft && ((hoje - dataRef) > trintaDias);
-                const isLowStock = parseInt(p.estoque) <= 3 && !p.isDraft;
+                const badgeParado = (analise && analise.parado) ? `<span class="bg-orange-100 text-orange-700 text-[9px] px-2 py-0.5 rounded-md font-black ml-2 border border-orange-200 uppercase"><i class="fas fa-clock"></i> Parado > 30d</span>` : '';
 
-                const badgeParado = isParado ? `<span class="bg-orange-100 text-orange-700 text-[9px] px-2 py-0.5 rounded-md font-black ml-2 border border-orange-200 uppercase"><i class="fas fa-clock"></i> Parado > 30d</span>` : '';
+                // Ajustes Visuais Baseados no Estoque Baixo <= 3
+                let alertStyles = "bg-white border-brand-100"; 
+                let lowStockWarning = "";
+
+                if (isLowStock) {
+                    alertStyles = "bg-red-50 border-red-400 border-2";
+                    lowStockWarning = `<div class="w-full text-center bg-red-100 text-red-600 font-black text-[10px] uppercase py-1 rounded-md mb-2 animate-pulse"><i class="fas fa-exclamation-triangle"></i> Atenção: Estoque Baixo</div>`;
+                }
 
                 const div = document.createElement('div');
-                div.className = `bg-white p-5 rounded-3xl border border-brand-100 shadow-sm ${p.isDraft ? 'is-draft' : ''} ${isLowStock ? 'alert-low-stock' : ''} ${isParado ? 'alert-parado' : ''} mb-4`;
+                div.className = `p-5 rounded-3xl shadow-sm mb-4 transition-all ${alertStyles} ${p.isDraft ? 'is-draft border-2 border-dashed border-blue-400 bg-blue-50' : ''}`;
                 
-                // Botões Dinâmicos
                 let divBotoes = '';
                 if (p.isDraft) {
                     divBotoes = `
@@ -1002,12 +1004,12 @@
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
                                     <span class="text-xs uppercase tracking-wider"><i class="fas fa-shopping-bag"></i> Sacola Cheia</span>
                                     <span class="text-sm font-black">${window.fmtMoeda(pricing.precoCheioFalso)}</span>
-                                    <span class="text-[10px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-max text-center mt-1">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
+                                    <span class="text-[10px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center mt-1">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
                                 </button>
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
                                     <span class="text-xs uppercase tracking-wider"><i class="fas fa-tags"></i> Sacola c/ Desc</span>
                                     <span class="text-sm font-black">${window.fmtMoeda(pricing.precoFinal)}</span>
-                                    <span class="text-[10px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-max text-center mt-1">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
+                                    <span class="text-[10px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-full text-center mt-1">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
                                 </button>
                             </div>
                         `;
@@ -1025,6 +1027,7 @@
                 }
 
                 div.innerHTML = `
+                    ${lowStockWarning}
                     <div class="flex justify-between items-start border-b border-slate-50 pb-3 mb-3">
                         <div class="w-full">
                             <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center mb-1">
@@ -1052,7 +1055,7 @@
                                 <input type="number" step="0.01" value="${p.taxasVariaveis || 0}" oninput="window.updateProdFast('${p.id}', 'taxasVariaveis', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
                             </div>
                             <div class="flex flex-col justify-end pb-1">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total (Real)</span>
                                 <span class="text-sm font-black text-slate-600" id="custo-total-${p.id}">${window.fmtMoeda(pricing.custoTotal)}</span>
                             </div>
                         </div>
@@ -1095,7 +1098,7 @@
                             <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider ml-2">Estoque Físico</span>
                             <div class="flex items-center gap-3">
                                 <button type="button" onclick="window.modEstoque('${p.id}', -1)" class="w-10 h-10 bg-slate-100 rounded-full text-slate-600 font-bold flex items-center justify-center hover:bg-slate-200 text-lg shadow-sm">-</button>
-                                <span class="font-black text-2xl text-slate-800 w-10 text-center" id="estoque-display-${p.id}">${p.estoque}</span>
+                                <span class="font-black text-2xl ${isLowStock ? 'text-red-600' : 'text-slate-800'} w-10 text-center" id="estoque-display-${p.id}">${p.estoque}</span>
                                 <button type="button" onclick="window.modEstoque('${p.id}', 1)" class="w-10 h-10 bg-emerald-500 text-white rounded-full font-bold flex items-center justify-center hover:bg-emerald-600 text-lg shadow-sm">+</button>
                             </div>
                         </div>
@@ -1138,13 +1141,14 @@
             if (!p.nome || p.nome.toString().trim() === '') return window.showToast("Digite o Nome do Produto!"); 
             if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return window.showToast("Insira um Custo Base válido!");
             
+            const pricing = window.calcularPricing(p);
+            p.precoFinal = pricing.precoFinal.toString();
             if (isNaN(parseFloat(p.desconto)) || p.desconto === '') p.desconto = '0';
             
-            // Removido o modal de confirmação para ser mais rápido e não congelar a tela.
             p.isDraft = false; 
             window.saveDB(); 
             window.renderProdutos(); 
-            window.showToast("Produto Salvo com Sucesso!"); 
+            window.showToast("Produto Confirmado!"); 
         };
         
         // Atualiza dinamicamente sem piscar o input
@@ -1224,8 +1228,7 @@
                 window.openModalConfirm(`${acao} Estoque?`, `Deseja confirmar a quantidade física para ${novaQtd} itens?`, () => {
                     p.estoque = novaQtd.toString(); 
                     window.saveDB(); 
-                    const el = document.getElementById(`estoque-display-${id}`);
-                    if(el) el.textContent = p.estoque;
+                    window.renderProdutos();
                     window.showToast("Estoque atualizado! 📦");
                 }, 'emerald');
             } 
@@ -1872,12 +1875,15 @@
             const desc = document.getElementById('add-desp-desc').value;
             const val = parseFloat(document.getElementById('add-desp-valor').value);
             if(!desc || !val) return alert("Preencha a descrição e o valor da despesa!");
-            window.dbDespesas.push({ id: window.guid(), descricao: desc, valor: val, data: new Date().toISOString() });
-            window.saveDB(); 
-            document.getElementById('add-desp-desc').value = ''; 
-            document.getElementById('add-desp-valor').value = ''; 
-            window.renderDespesas();
-            window.showToast("Despesa registrada no caixa!");
+            
+            window.openModalConfirm("Registrar Despesa?", `Confirmar gasto de ${window.fmtMoeda(val)} com ${desc}?`, () => {
+                window.dbDespesas.push({ id: window.guid(), descricao: desc, valor: val, data: new Date().toISOString() });
+                window.saveDB(); 
+                document.getElementById('add-desp-desc').value = ''; 
+                document.getElementById('add-desp-valor').value = ''; 
+                window.renderDespesas();
+                window.showToast("Despesa registrada no caixa!");
+            }, 'emerald');
         };
 
         window.excluirDespesa = function(id) { 
