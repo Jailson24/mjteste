@@ -546,6 +546,58 @@
         </div>
     </div>
 
+    <div id="modal-resumo-estoque" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center hidden-screen p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-xl font-bold text-brand-900 flex items-center gap-2"><i class="fas fa-clipboard-list text-emerald-600"></i> Resumo Geral</h3>
+                <button type="button" onclick="window.fecharResumoEstoque()" class="text-slate-400 hover:text-slate-600 active:scale-95"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="flex flex-col gap-3 mb-6">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Total de Peças Físicas</span>
+                    <span id="resumo-estoque-pecas" class="text-xl font-black text-slate-800">0</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Custo Investido Real</span>
+                    <span id="resumo-estoque-custo" class="text-lg font-bold text-slate-600">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <span class="text-xs font-bold text-brand-600 uppercase">Valor Venda Previsto</span>
+                    <span id="resumo-estoque-venda" class="text-lg font-black text-brand-600">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                    <span class="text-xs font-bold text-emerald-800 uppercase">Margem de Contribuição</span>
+                    <span id="resumo-estoque-lucro" class="text-lg font-black text-emerald-600">R$ 0,00</span>
+                </div>
+            </div>
+            <button type="button" onclick="window.fecharResumoEstoque()" class="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl active:scale-95">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal Nova Categoria -->
+    <div id="modal-nova-categoria" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center hidden-screen p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold text-brand-900 mb-4">Nova Categoria</h3>
+            <div class="flex flex-col gap-3">
+                <input type="text" id="nova-cat-nome" placeholder="Ex: Vestidos de Festa" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-500 font-bold text-slate-700">
+                <select id="nova-cat-icone" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-slate-700 font-bold">
+                    <option value="fa-female">Vestido / Geral</option>
+                    <option value="fa-tshirt">Blusa / Camiseta</option>
+                    <option value="fa-socks">Calça / Meias</option>
+                    <option value="fa-vest">Saia / Colete</option>
+                    <option value="fa-layer-group">Conjunto</option>
+                    <option value="fa-hat-cowboy">Acessório / Chapéu</option>
+                    <option value="fa-gem">Joias / Brilho</option>
+                    <option value="fa-star">Estrela / Novidade</option>
+                </select>
+                <div class="flex gap-3 mt-2">
+                    <button type="button" onclick="window.fecharModalNovaCategoria()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl">Cancelar</button>
+                    <button type="button" onclick="window.salvarNovaCategoria()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ================== NAVEGAÇÃO INFERIOR ================== -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-30">
         <div class="max-w-4xl mx-auto flex justify-between p-1 overflow-x-auto no-scrollbar">
@@ -562,9 +614,8 @@
         </div>
     </nav>
 
-    <!-- SCRIPT DA LÓGICA DO NEGÓCIO E UI -->
+    <!-- SCRIPT DA LÓGICA DO NEGÓCIO E UI (Acesso Direto) -->
     <script>
-        // Definição estrita no objeto Window
         window.dbProdutos = window.dbProdutos || [];
         window.dbCategorias = window.dbCategorias || [];
         window.dbClientes = window.dbClientes || [];
@@ -601,7 +652,7 @@
             console.log("Firebase ignorado. Rodando localmente.");
         }
 
-        // ================= PRECIFICAÇÃO MATEMÁTICA EXATA DA PLANILHA =================
+        // ================= PRECIFICAÇÃO MATEMÁTICA EXATA (Planilha) =================
         window.calcularPricing = function(p) {
             const custoBase = parseFloat(p.custo) || 0;
             const custoVar = parseFloat(p.custoVariavel) || 0;
@@ -609,39 +660,36 @@
             const margem = parseFloat(p.margem) || 0; 
             const desconto = parseFloat(p.desconto) || 0;
 
-            // Custo Total = Custo Base + Custo Variável + (Custo Base * Taxas)
+            // Custo Total (Base + Variável + Taxas)
             const valorTaxas = custoBase * (taxasVar / 100);
             const custoTotal = custoBase + custoVar + valorTaxas;
             
             let markup = 1;
             let valorSugerido = custoTotal;
 
-            // Markup Divisor
+            // Margem / Markup Divisor
             const taxaMargem = margem / 100;
             if (taxaMargem > 0 && taxaMargem < 1) {
                 valorSugerido = custoTotal / (1 - taxaMargem);
-                markup = valorSugerido / (custoTotal || 1); 
+                markup = 1 / (1 - taxaMargem); 
             } else if (taxaMargem >= 1) {
                 valorSugerido = custoTotal * 2;
                 markup = 2;
             }
 
-            // Valor de Venda Final (Manual do usuário)
-            let precoFinal = parseFloat(p.precoFinal);
-            if (isNaN(precoFinal) || precoFinal <= 0) {
-                precoFinal = valorSugerido; 
-            }
+            // O Valor Sugerido (Preço Final Desejado de Venda)
+            let precoFinal = valorSugerido; 
 
-            // Matemática reversa para descontos: infla o preço (Preço Cheio Falso) para quando aplicar o desconto, cair no preço final
-            let precoCheioFalso = precoFinal; 
+            // Matemática reversa do Desconto (Infla o preço para virar o Cheio/Falso)
+            let precoCheio = precoFinal; 
             if (desconto > 0 && desconto < 100) {
-                precoCheioFalso = precoFinal / (1 - (desconto / 100));
+                precoCheio = precoFinal / (1 - (desconto / 100));
             }
 
-            const mcCheio = precoCheioFalso - custoTotal;
+            const mcCheio = precoCheio - custoTotal;
             const mcFinal = precoFinal - custoTotal;
 
-            return { custoTotal, markup, valorSugerido, precoFinal, precoCheioFalso, mcCheio, mcFinal, desconto };
+            return { custoTotal, markup, valorSugerido, precoFinal, precoCheio, mcCheio, mcFinal, desconto };
         };
 
         window.processarBaixasAutomaticas = function() {
@@ -682,17 +730,17 @@
                     const doc = await db.collection("loja_mariajose").doc("dados_principais").get();
                     if(doc.exists) {
                         const dados = doc.data();
-                        window.dbProdutos = dados.produtos || window.dbProdutos || [];
-                        window.dbClientes = dados.clientes || window.dbClientes || [];
-                        window.dbVendas = dados.vendas || window.dbVendas || [];
-                        window.dbParcelas = dados.parcelas || window.dbParcelas || [];
-                        window.dbDespesas = dados.despesas || window.dbDespesas || [];
-                        window.dbFornecedores = dados.fornecedores || window.dbFornecedores || [];
-                        window.dbCategorias = dados.categorias || window.dbCategorias || [];
+                        window.dbProdutos = dados.produtos || window.dbProdutos;
+                        window.dbClientes = dados.clientes || window.dbClientes;
+                        window.dbVendas = dados.vendas || window.dbVendas;
+                        window.dbParcelas = dados.parcelas || window.dbParcelas;
+                        window.dbDespesas = dados.despesas || window.dbDespesas;
+                        window.dbFornecedores = dados.fornecedores || window.dbFornecedores;
+                        window.dbCategorias = dados.categorias || window.dbCategorias;
                         localStorage.setItem('loja_mariajose_local', JSON.stringify(dados));
                     }
                 } catch(e) {
-                    console.log("Continuando com dados locais.");
+                    console.log("Firebase sync falhou. Usando local.");
                 }
             }
 
@@ -916,7 +964,6 @@
                 const div = document.createElement('div');
                 div.className = `bg-white p-5 rounded-3xl border border-brand-100 shadow-sm ${p.isDraft ? 'is-draft' : ''} ${isLowStock ? 'alert-low-stock' : ''} ${isParado ? 'alert-parado' : ''} mb-4`;
                 
-                // Botões Dinâmicos: Só aparecem DEPOIS de confirmar cadastro
                 let divBotoes = '';
                 if (p.isDraft) {
                     divBotoes = `
@@ -929,7 +976,7 @@
                         divBotoes = `
                             <div class="grid grid-cols-2 gap-2 w-full mt-2">
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
-                                    <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheioFalso)})</span>
+                                    <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheio)})</span>
                                     <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
                                 </button>
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
@@ -942,7 +989,7 @@
                         divBotoes = `
                             <div class="w-full mt-2">
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="w-full bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md flex flex-col justify-center items-center gap-1 active:scale-95 transition border border-brand-700">
-                                    <span class="text-xs"><i class="fas fa-cart-plus"></i> Adicionar à Sacola (${window.fmtMoeda(pricing.precoFinal)})</span>
+                                    <span class="text-xs"><i class="fas fa-cart-plus"></i> Adicionar (${window.fmtMoeda(pricing.precoFinal)})</span>
                                     <span class="text-[9px] font-bold text-brand-200 bg-black/20 px-2 py-0.5 rounded w-max mx-auto px-4 text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
                                 </button>
                             </div>
@@ -978,7 +1025,7 @@
                                 <input type="number" step="0.01" value="${p.taxasVariaveis || 0}" oninput="window.updateProd('${p.id}', 'taxasVariaveis', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
                             </div>
                             <div class="flex flex-col justify-end pb-1">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total (Real)</span>
                                 <span class="text-sm font-black text-slate-600" id="custo-total-${p.id}">${window.fmtMoeda(pricing.custoTotal)}</span>
                             </div>
                         </div>
@@ -993,25 +1040,19 @@
                                 <span class="text-sm font-black text-slate-600" id="markup-${p.id}">${pricing.markup.toFixed(2)}x</span>
                             </div>
                             <div class="flex flex-col justify-end pb-1 col-span-2">
-                                <span class="text-[9px] font-bold text-brand-600 uppercase mb-1">Valor Sugerido (Tabela)</span>
+                                <span class="text-[9px] font-bold text-brand-600 uppercase mb-1">Valor Sugerido (Venda)</span>
                                 <span class="text-lg font-black text-brand-700" id="valor-sugerido-${p.id}">${window.fmtMoeda(pricing.valorSugerido)}</span>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 bg-brand-50 p-3 rounded-xl border border-brand-200">
-                            <div class="flex flex-col">
-                                <span class="text-[9px] font-bold text-brand-800 uppercase mb-1">Valor Final Desejado (R$)</span>
-                                <input type="number" step="0.01" value="${p.precoFinal || pricing.valorSugerido.toFixed(2)}" oninput="window.updateProd('${p.id}', 'precoFinal', this.value)" class="bg-white border border-brand-300 rounded-lg p-2 text-sm font-bold text-brand-900 outline-none focus:ring-2 focus:ring-brand-500 transition">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-brand-50 p-3 rounded-xl border border-brand-200">
+                            <div class="flex flex-col border-r border-brand-200 pr-2">
+                                <span class="text-[9px] font-bold text-emerald-700 uppercase mb-1">Inflar p/ Desconto (%)</span>
+                                <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="bg-white border border-emerald-300 rounded-lg p-2 text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500 transition">
                             </div>
-                            <div class="flex flex-col border-l border-brand-200 pl-2">
-                                <div class="flex justify-between items-end mb-1">
-                                    <span class="text-[9px] font-bold text-accent-700 uppercase">Inflar p/ Desconto (%)</span>
-                                    <span class="text-[9px] font-bold text-slate-400 text-right">Preço Cheio Falso</span>
-                                </div>
-                                <div class="flex gap-2 items-center">
-                                    <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="w-1/2 bg-white border border-accent-300 rounded-lg p-2 text-sm font-bold text-accent-700 outline-none focus:ring-2 focus:ring-accent-500 transition">
-                                    <span class="text-lg font-black text-slate-400 line-through w-1/2 text-right" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheioFalso)}</span>
-                                </div>
+                            <div class="flex flex-col justify-center text-right pl-2">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Preço Cheio Falso</span>
+                                <span class="text-lg font-black text-slate-400 line-through" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheio)}</span>
                             </div>
                         </div>
                     </div>
@@ -1063,9 +1104,6 @@
             if (!p.nome || p.nome.toString().trim() === '') return alert("Por favor, digite o NOME do produto."); 
             if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return alert("Por favor, insira um CUSTO Base válido.");
             
-            if (isNaN(parseFloat(p.precoFinal)) || p.precoFinal === '') {
-                p.precoFinal = window.calcularPricing(p).valorSugerido.toString();
-            }
             if (isNaN(parseFloat(p.desconto)) || p.desconto === '') p.desconto = '0';
             
             window.openModalConfirm("Confirmar Cadastro?", `Salvar "${p.nome}" no estoque?`, () => { 
@@ -1082,8 +1120,48 @@
                 window.dbProdutos[idx][field] = val; 
                 if (!window.dbProdutos[idx].isDraft) window.saveDB(); 
                 
-                if (['custo', 'custoVariavel', 'taxasVariaveis', 'margem', 'precoFinal', 'desconto'].includes(field)) {
-                    window.renderProdutos(); 
+                if (['custo', 'custoVariavel', 'taxasVariaveis', 'margem', 'desconto'].includes(field)) {
+                    const p = window.dbProdutos[idx];
+                    const pricing = window.calcularPricing(p);
+                    
+                    const elCustoTotal = document.getElementById(`custo-total-${id}`);
+                    if(elCustoTotal) elCustoTotal.textContent = window.fmtMoeda(pricing.custoTotal);
+                    
+                    const elMarkup = document.getElementById(`markup-${id}`);
+                    if(elMarkup) elMarkup.textContent = pricing.markup.toFixed(2) + 'x';
+                    
+                    const elSugerido = document.getElementById(`valor-sugerido-${id}`);
+                    if(elSugerido) elSugerido.textContent = window.fmtMoeda(pricing.valorSugerido);
+
+                    const elPrecoCheio = document.getElementById(`preco-cheio-falso-${id}`);
+                    if(elPrecoCheio) elPrecoCheio.textContent = window.fmtMoeda(pricing.precoCheio);
+
+                    const btnContainer = document.getElementById(`btn-container-${id}`);
+                    if (btnContainer && !p.isDraft) {
+                        if (pricing.desconto > 0) {
+                            btnContainer.innerHTML = `
+                                <div class="grid grid-cols-2 gap-2 w-full mt-2">
+                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
+                                        <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheio)})</span>
+                                        <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
+                                    </button>
+                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
+                                        <span class="text-xs">C/ Desc (${window.fmtMoeda(pricing.precoFinal)})</span>
+                                        <span class="text-[9px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
+                                    </button>
+                                </div>
+                            `;
+                        } else {
+                            btnContainer.innerHTML = `
+                                <div class="w-full mt-2">
+                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="w-full bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md flex flex-col justify-center items-center gap-1 active:scale-95 transition border border-brand-700">
+                                        <span class="text-xs"><i class="fas fa-cart-plus"></i> Adicionar (${window.fmtMoeda(pricing.precoFinal)})</span>
+                                        <span class="text-[9px] font-bold text-brand-200 bg-black/20 px-2 py-0.5 rounded w-max mx-auto px-4 text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
                 }
             } 
         };
@@ -1103,7 +1181,8 @@
                 window.openModalConfirm(`${acao} Estoque?`, `Deseja confirmar a quantidade para ${novaQtd} itens?`, () => {
                     p.estoque = novaQtd.toString(); 
                     window.saveDB(); 
-                    window.renderProdutos();
+                    const el = document.getElementById(`estoque-display-${id}`);
+                    if(el) el.textContent = p.estoque;
                     window.showToast("Estoque atualizado! 📦");
                 }, 'emerald');
             } 
@@ -1112,6 +1191,8 @@
         window.deleteProd = function(id) { 
             window.openModalConfirm("Excluir Produto?", "Remover permanentemente este item da loja?", () => { 
                 window.dbProdutos = window.dbProdutos.filter(p => p.id !== id); 
+                window.carrinho = window.carrinho.filter(c => c.pid !== id);
+                window.atualizarBadgeCarrinho();
                 window.saveDB(); 
                 window.renderProdutos(); 
                 window.showToast("Produto Excluído."); 
@@ -1135,8 +1216,8 @@
             let labelTipo = '';
 
             if (pricing.desconto > 0) {
-                precoUsado = window.tempAddTipo === 'cheio' ? pricing.precoCheioFalso : pricing.precoFinal;
-                labelTipo = window.tempAddTipo === 'cheio' ? 'Valor Cheio Falso' : 'Valor Final (C/ Desc)';
+                precoUsado = window.tempAddTipo === 'cheio' ? pricing.precoCheio : pricing.precoFinal;
+                labelTipo = window.tempAddTipo === 'cheio' ? 'Valor Cheio (Falso)' : 'Valor Final (C/ Desc)';
             } else {
                 precoUsado = pricing.precoFinal;
                 labelTipo = 'Valor Final';
@@ -1170,7 +1251,7 @@
 
             if (pricing.desconto > 0) {
                 if (item.tipo === 'cheio') {
-                    precoUnidade = pricing.precoCheioFalso;
+                    precoUnidade = pricing.precoCheio;
                     mcUnidade = pricing.mcCheio;
                     labelDesconto = ' (Valor Cheio)';
                 } else {
