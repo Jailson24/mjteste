@@ -550,58 +550,6 @@
         </div>
     </div>
 
-    <div id="modal-resumo-estoque" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center hidden-screen p-4">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="text-xl font-bold text-brand-900 flex items-center gap-2"><i class="fas fa-clipboard-list text-emerald-600"></i> Resumo Geral</h3>
-                <button type="button" onclick="window.fecharResumoEstoque()" class="text-slate-400 hover:text-slate-600 active:scale-95"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <div class="flex flex-col gap-3 mb-6">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <span class="text-xs font-bold text-slate-500 uppercase">Total de Peças Físicas</span>
-                    <span id="resumo-estoque-pecas" class="text-xl font-black text-slate-800">0</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <span class="text-xs font-bold text-slate-500 uppercase">Custo Investido Real</span>
-                    <span id="resumo-estoque-custo" class="text-lg font-bold text-slate-600">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <span class="text-xs font-bold text-brand-600 uppercase">Valor Venda Previsto</span>
-                    <span id="resumo-estoque-venda" class="text-lg font-black text-brand-600">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-                    <span class="text-xs font-bold text-emerald-800 uppercase">Margem de Contribuição</span>
-                    <span id="resumo-estoque-lucro" class="text-lg font-black text-emerald-600">R$ 0,00</span>
-                </div>
-            </div>
-            <button type="button" onclick="window.fecharResumoEstoque()" class="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl active:scale-95">Fechar</button>
-        </div>
-    </div>
-
-    <!-- Modal Nova Categoria -->
-    <div id="modal-nova-categoria" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center hidden-screen p-4">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 class="text-xl font-bold text-brand-900 mb-4">Nova Categoria</h3>
-            <div class="flex flex-col gap-3">
-                <input type="text" id="nova-cat-nome" placeholder="Ex: Vestidos de Festa" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand-500 font-bold text-slate-700">
-                <select id="nova-cat-icone" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-slate-700 font-bold">
-                    <option value="fa-female">Vestido / Geral</option>
-                    <option value="fa-tshirt">Blusa / Camiseta</option>
-                    <option value="fa-socks">Calça / Meias</option>
-                    <option value="fa-vest">Saia / Colete</option>
-                    <option value="fa-layer-group">Conjunto</option>
-                    <option value="fa-hat-cowboy">Acessório / Chapéu</option>
-                    <option value="fa-gem">Joias / Brilho</option>
-                    <option value="fa-star">Estrela / Novidade</option>
-                </select>
-                <div class="flex gap-3 mt-2">
-                    <button type="button" onclick="window.fecharModalNovaCategoria()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl">Cancelar</button>
-                    <button type="button" onclick="window.salvarNovaCategoria()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg">Salvar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- ================== NAVEGAÇÃO INFERIOR ================== -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-30">
         <div class="max-w-4xl mx-auto flex justify-between p-1 overflow-x-auto no-scrollbar">
@@ -618,7 +566,7 @@
         </div>
     </nav>
 
-    <!-- SCRIPT DA LÓGICA DO NEGÓCIO E UI (Acesso Direto - Sem Login) -->
+    <!-- SCRIPT DA LÓGICA DO NEGÓCIO E UI (Acesso Direto) -->
     <script>
         window.dbProdutos = [];
         window.dbCategorias = [];
@@ -639,7 +587,6 @@
         window.compraAtualEstorno = null;
         window.currentCat = '';
 
-        // Tenta iniciar o Firebase (Opcional, não bloqueia se offline)
         let db = null;
         try {
             const firebaseConfig = {
@@ -665,14 +612,12 @@
             const margem = parseFloat(p.margem) || 0; 
             const desconto = parseFloat(p.desconto) || 0;
 
-            // Custo Total = Custo Base + Custo Variável + (Custo Base * Taxas)
             const valorTaxas = custoBase * (taxasVar / 100);
             const custoTotal = custoBase + custoVar + valorTaxas;
             
             let markup = 1;
             let valorSugerido = custoTotal;
 
-            // Markup Divisor
             const taxaMargem = margem / 100;
             if (taxaMargem > 0 && taxaMargem < 1) {
                 valorSugerido = custoTotal / (1 - taxaMargem);
@@ -682,13 +627,12 @@
                 markup = 2;
             }
 
-            // Valor de Venda Final (Manual do usuário - Valor Limpo de Vitrine)
             let precoFinal = parseFloat(p.precoFinal);
             if (isNaN(precoFinal) || precoFinal <= 0) {
-                precoFinal = valorSugerido; // O Valor Final Desejado assume o sugerido por padrão
+                precoFinal = valorSugerido; 
             }
 
-            // Lógica do Desconto: Aumenta o valor para que, ao dar o desconto, caia no preço final desejado
+            // Matemática reversa para descontos: joga o Preço Cheio Falso lá pra cima.
             let precoCheio = precoFinal; 
             if (desconto > 0 && desconto < 100) {
                 precoCheio = precoFinal / (1 - (desconto / 100));
@@ -717,12 +661,10 @@
         };
 
         window.inicializarApp = async function() {
-            // Remove qualquer tela de login residual
             document.getElementById('screen-login').classList.add('hidden-screen');
             document.getElementById('screen-paywall').classList.add('hidden-screen');
             document.getElementById('screen-estoque').classList.remove('hidden-screen');
             
-            // Lê do LocalStorage primeiro (Rápido)
             const dadosStr = localStorage.getItem('loja_mariajose_local');
             if(dadosStr) {
                 const dados = JSON.parse(dadosStr);
@@ -735,7 +677,6 @@
                 window.dbCategorias = dados.categorias || [];
             }
 
-            // Tenta sincronizar com o Firebase
             if(db) {
                 try {
                     const doc = await db.collection("loja_mariajose").doc("dados_principais").get();
@@ -967,6 +908,7 @@
                 const div = document.createElement('div');
                 div.className = `bg-white p-5 rounded-3xl border border-brand-100 shadow-sm ${p.isDraft ? 'is-draft' : ''} ${isLowStock ? 'alert-low-stock' : ''} ${isParado ? 'alert-parado' : ''} mb-4`;
                 
+                // Botões Dinâmicos: Só aparecem DEPOIS de confirmar cadastro
                 let divBotoes = '';
                 if (p.isDraft) {
                     divBotoes = `
@@ -1006,7 +948,7 @@
                             <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center mb-1">
                                 ${p.isDraft ? '<span class="text-blue-500 mr-2">[NOVO ITEM - PREENCHA]</span>' : 'Produto'} ${badgeParado}
                             </span>
-                            <input type="text" value="${p.nome}" onchange="window.updateProd('${p.id}', 'nome', this.value)" class="w-full bg-transparent font-bold text-slate-800 text-xl border-none p-0 outline-none" placeholder="Ex: Vestido Festa">
+                            <input type="text" id="input-nome-${p.id}" value="${p.nome}" oninput="window.updateProd('${p.id}', 'nome', this.value)" class="w-full bg-transparent font-bold text-slate-800 text-xl border-none p-0 outline-none" placeholder="Ex: Vestido Festa">
                         </div>
                         <button type="button" onclick="window.deleteProd('${p.id}')" class="text-slate-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>
                     </div>
@@ -1028,7 +970,7 @@
                                 <input type="number" step="0.01" value="${p.taxasVariaveis || 0}" oninput="window.updateProd('${p.id}', 'taxasVariaveis', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
                             </div>
                             <div class="flex flex-col justify-end pb-1">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total (Real)</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total</span>
                                 <span class="text-sm font-black text-slate-600" id="custo-total-${p.id}">${window.fmtMoeda(pricing.custoTotal)}</span>
                             </div>
                         </div>
@@ -1054,13 +996,13 @@
                                 <input type="number" step="0.01" value="${p.precoFinal || pricing.valorSugerido.toFixed(2)}" oninput="window.updateProd('${p.id}', 'precoFinal', this.value)" class="bg-white border border-brand-300 rounded-lg p-2 text-sm font-bold text-brand-900 outline-none focus:ring-2 focus:ring-brand-500 transition">
                             </div>
                             <div class="flex flex-col border-l border-brand-200 pl-2">
-                                <span class="text-[9px] font-bold text-emerald-700 uppercase mb-1">Aumentar Preço p/ Desconto (%)</span>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="w-1/2 bg-white border border-emerald-300 rounded-lg p-2 text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                                    <div class="w-1/2 text-right">
-                                        <span class="block text-[8px] text-slate-400 font-bold uppercase">Preço Falso (Cheio)</span>
-                                        <span class="text-sm font-black text-slate-400 line-through" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheio)}</span>
-                                    </div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="text-[9px] font-bold text-accent-700 uppercase">Inflar para Desconto (%)</span>
+                                    <span class="text-[9px] font-bold text-slate-400 text-right">Preço Cheio Falso</span>
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="w-1/2 bg-white border border-accent-300 rounded-lg p-2 text-sm font-bold text-accent-700 outline-none focus:ring-2 focus:ring-accent-500 transition">
+                                    <span class="text-lg font-black text-slate-400 line-through w-1/2 text-right" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheio)}</span>
                                 </div>
                             </div>
                         </div>
@@ -1108,8 +1050,12 @@
 
         window.salvarNovoItemNoEstoque = function(id) { 
             const p = window.dbProdutos.find(x => x.id === id); 
+            
+            const inputNome = document.getElementById(`input-nome-${id}`);
+            if (inputNome && inputNome.value) p.nome = inputNome.value;
+
             if (!p.nome || p.nome.toString().trim() === '') return alert("Por favor, digite o NOME do produto."); 
-            if (!p.custo || parseFloat(p.custo) < 0) return alert("Por favor, insira um CUSTO válido.");
+            if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return alert("Por favor, insira um CUSTO válido.");
             
             if (isNaN(parseFloat(p.precoFinal)) || p.precoFinal === '') {
                 p.precoFinal = window.calcularPricing(p).valorSugerido.toString();
@@ -1121,7 +1067,7 @@
                 window.saveDB(); 
                 window.renderProdutos(); 
                 window.showToast("Adicionado à vitrine!"); 
-            }, 'brand'); 
+            }, 'emerald'); 
         };
         
         window.updateProd = function(id, field, val) { 
@@ -1131,47 +1077,7 @@
                 if (!window.dbProdutos[idx].isDraft) window.saveDB(); 
                 
                 if (['custo', 'custoVariavel', 'taxasVariaveis', 'margem', 'precoFinal', 'desconto'].includes(field)) {
-                    const p = window.dbProdutos[idx];
-                    const pricing = window.calcularPricing(p);
-                    
-                    const elCustoTotal = document.getElementById(`custo-total-${id}`);
-                    if(elCustoTotal) elCustoTotal.textContent = window.fmtMoeda(pricing.custoTotal);
-                    
-                    const elMarkup = document.getElementById(`markup-${id}`);
-                    if(elMarkup) elMarkup.textContent = pricing.markup.toFixed(2) + 'x';
-                    
-                    const elSugerido = document.getElementById(`valor-sugerido-${id}`);
-                    if(elSugerido) elSugerido.textContent = window.fmtMoeda(pricing.valorSugerido);
-
-                    const elPrecoCheio = document.getElementById(`preco-cheio-falso-${id}`);
-                    if(elPrecoCheio) elPrecoCheio.textContent = window.fmtMoeda(pricing.precoCheio);
-
-                    const btnContainer = document.getElementById(`btn-container-${id}`);
-                    if (btnContainer && !p.isDraft) {
-                        if (pricing.desconto > 0) {
-                            btnContainer.innerHTML = `
-                                <div class="grid grid-cols-2 gap-2 w-full mt-2">
-                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
-                                        <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheio)})</span>
-                                        <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
-                                    </button>
-                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
-                                        <span class="text-xs">C/ Desc (${window.fmtMoeda(pricing.precoFinal)})</span>
-                                        <span class="text-[9px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
-                                    </button>
-                                </div>
-                            `;
-                        } else {
-                            btnContainer.innerHTML = `
-                                <div class="w-full mt-2">
-                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="w-full bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md flex flex-col justify-center items-center gap-1 active:scale-95 transition border border-brand-700">
-                                        <span class="text-xs"><i class="fas fa-cart-plus"></i> Adicionar à Sacola (${window.fmtMoeda(pricing.precoFinal)})</span>
-                                        <span class="text-[9px] font-bold text-brand-200 bg-black/20 px-2 py-0.5 rounded w-max mx-auto px-4 text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
-                                    </button>
-                                </div>
-                            `;
-                        }
-                    }
+                    window.renderProdutos(); 
                 }
             } 
         };
@@ -1183,16 +1089,14 @@
                 const novaQtd = Math.max(0, (parseInt(p.estoque) || 0) + delta);
                 if (p.isDraft) { 
                     p.estoque = novaQtd.toString(); 
-                    const el = document.getElementById(`estoque-display-${id}`);
-                    if(el) el.textContent = p.estoque;
+                    window.renderProdutos();
                     return; 
                 }
                 const acao = delta > 0 ? "Adicionar" : "Reduzir";
-                window.openModalConfirm(`${acao} Estoque?`, `Deseja ${acao.toLowerCase()} para ${novaQtd} unidades?`, () => {
+                window.openModalConfirm(`${acao} Estoque?`, `Deseja confirmar a quantidade para ${novaQtd} itens?`, () => {
                     p.estoque = novaQtd.toString(); 
                     window.saveDB(); 
-                    const el = document.getElementById(`estoque-display-${id}`);
-                    if(el) el.textContent = p.estoque;
+                    window.renderProdutos();
                     window.showToast("Estoque atualizado! 📦");
                 }, 'emerald');
             } 
@@ -1599,7 +1503,7 @@
             if(!n || !tel) return alert("Por favor, preencha pelo menos o Nome e o Telefone."); 
             window.dbClientes.push({ id: window.guid(), nome: n, tel: tel, cpf: cpf, email: email, endereco: end }); 
             window.saveDB(); 
-            document.getElementById('modal-cliente').classList.add('hidden-screen'); 
+            window.fecharModalCliente(); 
             window.renderClientes(); 
             window.showToast("Cliente Salvo!"); 
         };
@@ -1611,6 +1515,10 @@
             document.getElementById('cli-email').value = ''; 
             document.getElementById('cli-endereco').value = ''; 
             document.getElementById('modal-cliente').classList.remove('hidden-screen'); 
+        };
+
+        window.fecharModalCliente = function() { 
+            document.getElementById('modal-cliente').classList.add('hidden-screen'); 
         };
 
         window.deleteCli = function(id) { 
@@ -1799,9 +1707,9 @@
             
             if (lucroLiquido >= 0) {
                 barra.style.width = '100%';
-                barra.className = 'h-full transition-all duration-500 bg-brand-500';
-                status.innerHTML = '<span class="text-xs font-bold text-brand-600 uppercase tracking-widest">Em Lucro (Operação Segura)</span>';
-                document.getElementById('despesas-lucro-liquido').className = 'text-2xl font-black text-brand-600';
+                barra.className = 'h-full transition-all duration-500 bg-blue-500';
+                status.innerHTML = '<span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Em Lucro (Operação Segura)</span>';
+                document.getElementById('despesas-lucro-liquido').className = 'text-2xl font-black text-blue-600';
             } else {
                 let p = totalDespesas > 0 ? (lucroMes / totalDespesas) * 100 : 0;
                 barra.style.width = Math.min(Math.max(p, 0), 100) + '%';
