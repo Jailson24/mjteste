@@ -32,10 +32,6 @@
                         brand: {
                             50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 500: '#f43f5e',
                             600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337',
-                        },
-                        accent: {
-                            500: '#d97706',
-                            600: '#b45309',
                         }
                     }
                 }
@@ -566,17 +562,18 @@
         </div>
     </nav>
 
-    <!-- SCRIPT DA LÓGICA DO NEGÓCIO E UI (Acesso Direto) -->
+    <!-- SCRIPT DA LÓGICA DO NEGÓCIO E UI -->
     <script>
-        window.dbProdutos = [];
-        window.dbCategorias = [];
-        window.dbClientes = [];
-        window.dbVendas = [];
-        window.dbParcelas = [];
-        window.dbDespesas = []; 
-        window.dbFornecedores = [];
+        // Definição estrita no objeto Window
+        window.dbProdutos = window.dbProdutos || [];
+        window.dbCategorias = window.dbCategorias || [];
+        window.dbClientes = window.dbClientes || [];
+        window.dbVendas = window.dbVendas || [];
+        window.dbParcelas = window.dbParcelas || [];
+        window.dbDespesas = window.dbDespesas || []; 
+        window.dbFornecedores = window.dbFornecedores || [];
         
-        window.carrinho = [];
+        window.carrinho = window.carrinho || [];
         window.totalCheckoutAtual = 0;
         window.relatorioTempData = [];
         window.tempAddPid = null;
@@ -612,12 +609,14 @@
             const margem = parseFloat(p.margem) || 0; 
             const desconto = parseFloat(p.desconto) || 0;
 
+            // Custo Total = Custo Base + Custo Variável + (Custo Base * Taxas)
             const valorTaxas = custoBase * (taxasVar / 100);
             const custoTotal = custoBase + custoVar + valorTaxas;
             
             let markup = 1;
             let valorSugerido = custoTotal;
 
+            // Markup Divisor
             const taxaMargem = margem / 100;
             if (taxaMargem > 0 && taxaMargem < 1) {
                 valorSugerido = custoTotal / (1 - taxaMargem);
@@ -627,28 +626,29 @@
                 markup = 2;
             }
 
+            // Valor de Venda Final (Manual do usuário)
             let precoFinal = parseFloat(p.precoFinal);
             if (isNaN(precoFinal) || precoFinal <= 0) {
                 precoFinal = valorSugerido; 
             }
 
-            // Matemática reversa para descontos: joga o Preço Cheio Falso lá pra cima.
-            let precoCheio = precoFinal; 
+            // Matemática reversa para descontos: infla o preço (Preço Cheio Falso) para quando aplicar o desconto, cair no preço final
+            let precoCheioFalso = precoFinal; 
             if (desconto > 0 && desconto < 100) {
-                precoCheio = precoFinal / (1 - (desconto / 100));
+                precoCheioFalso = precoFinal / (1 - (desconto / 100));
             }
 
-            const mcCheio = precoCheio - custoTotal;
+            const mcCheio = precoCheioFalso - custoTotal;
             const mcFinal = precoFinal - custoTotal;
 
-            return { custoTotal, markup, valorSugerido, precoFinal, precoCheio, mcCheio, mcFinal, desconto };
+            return { custoTotal, markup, valorSugerido, precoFinal, precoCheioFalso, mcCheio, mcFinal, desconto };
         };
 
         window.processarBaixasAutomaticas = function() {
             let alterado = false;
             const hoje = new Date();
             hoje.setHours(23, 59, 59, 999); 
-            window.dbParcelas.forEach(p => {
+            (window.dbParcelas || []).forEach(p => {
                 if (p.cnome === 'Cartão de Crédito' && p.status === 'pendente') {
                     const dataVenc = new Date(p.vencimento);
                     if (dataVenc <= hoje) {
@@ -682,13 +682,13 @@
                     const doc = await db.collection("loja_mariajose").doc("dados_principais").get();
                     if(doc.exists) {
                         const dados = doc.data();
-                        window.dbProdutos = dados.produtos || window.dbProdutos;
-                        window.dbClientes = dados.clientes || window.dbClientes;
-                        window.dbVendas = dados.vendas || window.dbVendas;
-                        window.dbParcelas = dados.parcelas || window.dbParcelas;
-                        window.dbDespesas = dados.despesas || window.dbDespesas;
-                        window.dbFornecedores = dados.fornecedores || window.dbFornecedores;
-                        window.dbCategorias = dados.categorias || window.dbCategorias;
+                        window.dbProdutos = dados.produtos || window.dbProdutos || [];
+                        window.dbClientes = dados.clientes || window.dbClientes || [];
+                        window.dbVendas = dados.vendas || window.dbVendas || [];
+                        window.dbParcelas = dados.parcelas || window.dbParcelas || [];
+                        window.dbDespesas = dados.despesas || window.dbDespesas || [];
+                        window.dbFornecedores = dados.fornecedores || window.dbFornecedores || [];
+                        window.dbCategorias = dados.categorias || window.dbCategorias || [];
                         localStorage.setItem('loja_mariajose_local', JSON.stringify(dados));
                     }
                 } catch(e) {
@@ -696,7 +696,7 @@
                 }
             }
 
-            if (window.dbCategorias.length === 0) {
+            if (!window.dbCategorias || window.dbCategorias.length === 0) {
                 window.dbCategorias = [
                     { id: 'vestidos', nome: 'Vestidos', icone: 'fa-female' }, { id: 'blusas', nome: 'Blusas', icone: 'fa-tshirt' },
                     { id: 'calcas', nome: 'Calças', icone: 'fa-socks' }, { id: 'saias', nome: 'Saias', icone: 'fa-vest' },
@@ -764,12 +764,12 @@
             const hoje = new Date();
             const trintaDias = 30 * 24 * 60 * 60 * 1000;
 
-            window.dbProdutos.forEach(p => {
+            (window.dbProdutos || []).forEach(p => {
                 let estoqueAtual = parseInt(p.estoque) || 0; 
                 let pricing = window.calcularPricing(p);
                 if (estoqueAtual > 0) totalValorEstoque += (pricing.precoFinal * estoqueAtual);
 
-                let vendasDesteProduto = window.dbVendas.filter(v => v.pid === p.id);
+                let vendasDesteProduto = (window.dbVendas || []).filter(v => v.pid === p.id);
                 let ultimaVendaStr = null;
                 if (vendasDesteProduto.length > 0) {
                     let vendasOrdenadas = [...vendasDesteProduto].sort((a, b) => new Date(b.data) - new Date(a.data));
@@ -793,33 +793,41 @@
         window.renderInteligenciaEstoque = function() {
             const container = document.getElementById('cards-estoque-inteligente');
             if(!container) return;
-            const { totalValorEstoque, produtosAnalisados } = window.analisarEstoqueInteligente();
-            const itensParados = produtosAnalisados.filter(p => p.parado);
             
-            container.innerHTML = `
-                <div class="bg-white p-4 rounded-2xl border border-brand-100 shadow-sm flex items-center justify-between">
-                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Valor em Estoque</p><p class="text-xl font-black text-emerald-600">${window.fmtMoeda(totalValorEstoque)}</p></div>
-                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fas fa-dollar-sign"></i></div>
-                </div>
-                <div onclick="document.getElementById('modal-alertas-estoque').classList.remove('hidden-screen')" class="bg-white p-4 rounded-2xl border border-brand-100 shadow-sm flex items-center justify-between cursor-pointer ${itensParados.length > 0 ? 'border-orange-200 bg-orange-50' : ''}">
-                    <div><p class="text-[10px] font-bold ${itensParados.length > 0 ? 'text-orange-500' : 'text-slate-400'} uppercase">Itens Parados (>30d)</p><p class="text-xl font-black ${itensParados.length > 0 ? 'text-orange-600' : 'text-slate-800'}">${itensParados.length}</p></div>
-                    <div class="w-10 h-10 ${itensParados.length > 0 ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'} rounded-xl flex items-center justify-center"><i class="fas fa-clock"></i></div>
-                </div>
-            `;
-            const listParados = document.getElementById('lista-modal-parados');
-            if (listParados) {
-                listParados.innerHTML = itensParados.length > 0 ? itensParados.map(p => `<div class="bg-orange-50 p-3 rounded-xl border border-orange-100 flex justify-between items-center mb-2 shadow-sm"><div><p class="font-bold text-sm text-slate-800">${p.nome || 'S/N'}</p><p class="text-[10px] text-orange-600 font-bold uppercase tracking-wider"><i class="fas fa-clock mr-1"></i> Sem giro há mais de 30d</p></div><div class="text-center bg-white px-3 py-1 rounded-lg border border-orange-100"><span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Estoque</span><span class="font-black text-orange-600 text-lg">${p.estoque}</span></div></div>`).join('') : '<p class="text-xs text-slate-500">Nenhum item parado.</p>';
+            try {
+                const { totalValorEstoque, produtosAnalisados } = window.analisarEstoqueInteligente();
+                const itensParados = produtosAnalisados.filter(p => p.parado);
+                
+                container.innerHTML = `
+                    <div class="bg-white p-4 rounded-2xl border border-brand-100 shadow-sm flex items-center justify-between">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Valor em Estoque</p><p class="text-xl font-black text-emerald-600">${window.fmtMoeda(totalValorEstoque)}</p></div>
+                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fas fa-dollar-sign"></i></div>
+                    </div>
+                    <div onclick="document.getElementById('modal-alertas-estoque').classList.remove('hidden-screen')" class="bg-white p-4 rounded-2xl border border-brand-100 shadow-sm flex items-center justify-between cursor-pointer ${itensParados.length > 0 ? 'border-orange-200 bg-orange-50' : ''}">
+                        <div><p class="text-[10px] font-bold ${itensParados.length > 0 ? 'text-orange-500' : 'text-slate-400'} uppercase">Itens Parados (>30d)</p><p class="text-xl font-black ${itensParados.length > 0 ? 'text-orange-600' : 'text-slate-800'}">${itensParados.length}</p></div>
+                        <div class="w-10 h-10 ${itensParados.length > 0 ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'} rounded-xl flex items-center justify-center"><i class="fas fa-clock"></i></div>
+                    </div>
+                `;
+                const listParados = document.getElementById('lista-modal-parados');
+                if (listParados) {
+                    listParados.innerHTML = itensParados.length > 0 ? itensParados.map(p => `<div class="bg-orange-50 p-3 rounded-xl border border-orange-100 flex justify-between items-center mb-2 shadow-sm"><div><p class="font-bold text-sm text-slate-800">${p.nome || 'S/N'}</p><p class="text-[10px] text-orange-600 font-bold uppercase tracking-wider"><i class="fas fa-clock mr-1"></i> Sem giro há mais de 30d</p></div><div class="text-center bg-white px-3 py-1 rounded-lg border border-orange-100"><span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Estoque</span><span class="font-black text-orange-600 text-lg">${p.estoque}</span></div></div>`).join('') : '<p class="text-xs text-slate-500">Nenhum item parado.</p>';
+                }
+            } catch(e) {
+                console.error("Erro renderizando inteligência:", e);
             }
         };
 
         window.renderCategorias = function() {
-            const grid = document.getElementById('grid-categorias'); grid.innerHTML = '';
+            const grid = document.getElementById('grid-categorias'); 
+            if(!grid) return;
+            grid.innerHTML = '';
             document.getElementById('tela-categorias').classList.remove('hidden-screen'); 
             document.getElementById('tela-produtos').classList.add('hidden-screen');
+            
             window.renderInteligenciaEstoque();
             
-            window.dbCategorias.forEach(cat => {
-                const count = window.dbProdutos.filter(p => p.categoria === cat.id).length;
+            (window.dbCategorias || []).forEach(cat => {
+                const count = (window.dbProdutos || []).filter(p => p.categoria === cat.id).length;
                 grid.innerHTML += `<div onclick="window.abrirCategoria('${cat.id}', '${cat.nome}')" class="bg-white p-5 rounded-3xl border border-brand-100 shadow-sm flex flex-col items-center gap-2 cursor-pointer hover:border-brand-200 active:scale-95 transition"><div class="w-14 h-14 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fas ${cat.icone}"></i></div><div class="text-center"><h3 class="font-bold text-sm text-slate-800">${cat.nome}</h3><p class="text-[10px] text-brand-600 uppercase font-bold tracking-wider">${count} Itens</p></div></div>`;
             });
             
@@ -863,7 +871,7 @@
         window.voltarCategorias = function() { window.renderCategorias(); };
         
         window.excluirCategoriaAtual = function() {
-            const itensNestaCat = window.dbProdutos.filter(p => p.categoria === window.currentCat).length;
+            const itensNestaCat = (window.dbProdutos || []).filter(p => p.categoria === window.currentCat).length;
             if(itensNestaCat > 0) return alert("Não é possível excluir. Esvazie a categoria (removendo os itens) primeiro.");
             
             window.openModalConfirm("Excluir Categoria?", "Tem certeza que deseja apagar esta categoria?", () => {
@@ -877,7 +885,7 @@
         // ================= RENDERIZAR VITRINE E TABELA DE PRECIFICAÇÃO =================
         window.renderProdutos = function() {
             const list = document.getElementById('listaProdutos'); list.innerHTML = '';
-            const filtered = window.dbProdutos.filter(p => p.categoria === window.currentCat);
+            const filtered = (window.dbProdutos || []).filter(p => p.categoria === window.currentCat);
             document.getElementById('msg-vazia-produtos').classList.toggle('hidden-screen', filtered.length > 0);
             
             const btnExcluir = document.getElementById('btn-excluir-categoria');
@@ -893,7 +901,7 @@
                 const pricing = window.calcularPricing(p);
                 
                 let ultimaVendaStr = null;
-                let vendasDesteProduto = window.dbVendas.filter(v => v.pid === p.id);
+                let vendasDesteProduto = (window.dbVendas || []).filter(v => v.pid === p.id);
                 if (vendasDesteProduto.length > 0) {
                     let vendasOrdenadas = [...vendasDesteProduto].sort((a, b) => new Date(b.data) - new Date(a.data));
                     ultimaVendaStr = vendasOrdenadas[0].data;
@@ -921,7 +929,7 @@
                         divBotoes = `
                             <div class="grid grid-cols-2 gap-2 w-full mt-2">
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
-                                    <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheio)})</span>
+                                    <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheioFalso)})</span>
                                     <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
                                 </button>
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
@@ -997,19 +1005,18 @@
                             </div>
                             <div class="flex flex-col border-l border-brand-200 pl-2">
                                 <div class="flex justify-between items-end mb-1">
-                                    <span class="text-[9px] font-bold text-accent-700 uppercase">Inflar para Desconto (%)</span>
+                                    <span class="text-[9px] font-bold text-accent-700 uppercase">Inflar p/ Desconto (%)</span>
                                     <span class="text-[9px] font-bold text-slate-400 text-right">Preço Cheio Falso</span>
                                 </div>
                                 <div class="flex gap-2 items-center">
                                     <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="w-1/2 bg-white border border-accent-300 rounded-lg p-2 text-sm font-bold text-accent-700 outline-none focus:ring-2 focus:ring-accent-500 transition">
-                                    <span class="text-lg font-black text-slate-400 line-through w-1/2 text-right" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheio)}</span>
+                                    <span class="text-lg font-black text-slate-400 line-through w-1/2 text-right" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheioFalso)}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="flex flex-col gap-3 mt-4">
-                        ${!p.isDraft ? `
                         <div class="bg-white p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-1 w-full max-w-xs mx-auto shadow-sm">
                             <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider ml-2">Estoque Físico</span>
                             <div class="flex items-center gap-2">
@@ -1018,7 +1025,6 @@
                                 <button type="button" onclick="window.modEstoque('${p.id}', 1)" class="w-8 h-8 bg-emerald-500 text-white rounded-full font-bold flex items-center justify-center hover:bg-emerald-600">+</button>
                             </div>
                         </div>
-                        ` : ''}
                         <div id="btn-container-${p.id}">
                             ${divBotoes}
                         </div>
@@ -1055,7 +1061,7 @@
             if (inputNome && inputNome.value) p.nome = inputNome.value;
 
             if (!p.nome || p.nome.toString().trim() === '') return alert("Por favor, digite o NOME do produto."); 
-            if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return alert("Por favor, insira um CUSTO válido.");
+            if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return alert("Por favor, insira um CUSTO Base válido.");
             
             if (isNaN(parseFloat(p.precoFinal)) || p.precoFinal === '') {
                 p.precoFinal = window.calcularPricing(p).valorSugerido.toString();
@@ -1089,10 +1095,11 @@
                 const novaQtd = Math.max(0, (parseInt(p.estoque) || 0) + delta);
                 if (p.isDraft) { 
                     p.estoque = novaQtd.toString(); 
-                    window.renderProdutos();
+                    const el = document.getElementById(`estoque-display-${id}`);
+                    if(el) el.textContent = p.estoque;
                     return; 
                 }
-                const acao = delta > 0 ? "Adicionar" : "Reduzir";
+                const acao = delta > 0 ? "Adicionar ao" : "Reduzir do";
                 window.openModalConfirm(`${acao} Estoque?`, `Deseja confirmar a quantidade para ${novaQtd} itens?`, () => {
                     p.estoque = novaQtd.toString(); 
                     window.saveDB(); 
@@ -1128,8 +1135,8 @@
             let labelTipo = '';
 
             if (pricing.desconto > 0) {
-                precoUsado = window.tempAddTipo === 'cheio' ? pricing.precoCheio : pricing.precoFinal;
-                labelTipo = window.tempAddTipo === 'cheio' ? 'Valor Cheio (Falso)' : 'Valor Final (C/ Desc)';
+                precoUsado = window.tempAddTipo === 'cheio' ? pricing.precoCheioFalso : pricing.precoFinal;
+                labelTipo = window.tempAddTipo === 'cheio' ? 'Valor Cheio Falso' : 'Valor Final (C/ Desc)';
             } else {
                 precoUsado = pricing.precoFinal;
                 labelTipo = 'Valor Final';
@@ -1163,7 +1170,7 @@
 
             if (pricing.desconto > 0) {
                 if (item.tipo === 'cheio') {
-                    precoUnidade = pricing.precoCheio;
+                    precoUnidade = pricing.precoCheioFalso;
                     mcUnidade = pricing.mcCheio;
                     labelDesconto = ' (Valor Cheio)';
                 } else {
