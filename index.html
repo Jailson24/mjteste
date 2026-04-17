@@ -32,6 +32,10 @@
                         brand: {
                             50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 500: '#f43f5e',
                             600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337',
+                        },
+                        accent: {
+                            500: '#d97706',
+                            600: '#b45309',
                         }
                     }
                 }
@@ -71,8 +75,8 @@
 
     <!-- ================== TELAS DA APLICAÇÃO ================== -->
     
-    <!-- ESTOQUE (Acesso Direto, Sem Login) -->
-    <div id="screen-estoque">
+    <!-- ESTOQUE -->
+    <div id="screen-estoque" class="hidden-screen">
         <div id="tela-categorias" class="max-w-4xl mx-auto">
             <div class="flex items-center justify-between mb-6 bg-white p-5 rounded-3xl shadow-sm border border-brand-100">
                 <div><h1 class="text-2xl font-bold text-brand-900">Meu Estoque</h1><p class="text-sm text-brand-600">Selecione uma categoria</p></div>
@@ -262,6 +266,20 @@
     <div class="h-32 w-full pointer-events-none"></div>
 
     <!-- ================== MODAIS ================== -->
+    
+    <!-- Modal Confirmação Blocado e Central (ÚNICA INSTÂNCIA) -->
+    <div id="modal-confirmacao" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center hidden-screen p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div id="modal-confirm-icon" class="w-14 h-14 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3 id="modal-confirm-titulo" class="text-xl font-bold text-center text-slate-800 mb-2">Atenção</h3>
+            <p id="modal-confirm-texto" class="text-center text-slate-500 mb-6 text-sm"></p>
+            <div class="flex gap-3">
+                <button type="button" onclick="window.fecharModalConfirm()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl active:scale-95 transition-all">Cancelar</button>
+                <button type="button" id="btn-confirm-yes" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Opções Estorno -->
     <div id="modal-opcoes-estorno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center hidden-screen p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-xl max-h-[90vh] flex flex-col">
@@ -678,18 +696,21 @@
             }
 
             // O Valor Sugerido (Preço Final Desejado de Venda)
-            let precoFinal = valorSugerido; 
-
-            // Matemática reversa do Desconto (Infla o preço para virar o Cheio/Falso)
-            let precoCheio = precoFinal; 
-            if (desconto > 0 && desconto < 100) {
-                precoCheio = precoFinal / (1 - (desconto / 100));
+            let precoFinal = parseFloat(p.precoFinal);
+            if (isNaN(precoFinal) || precoFinal <= 0) {
+                precoFinal = valorSugerido; 
             }
 
-            const mcCheio = precoCheio - custoTotal;
+            // Matemática reversa do Desconto (Infla o preço para virar o Cheio/Falso)
+            let precoCheioFalso = precoFinal; 
+            if (desconto > 0 && desconto < 100) {
+                precoCheioFalso = precoFinal / (1 - (desconto / 100));
+            }
+
+            const mcCheio = precoCheioFalso - custoTotal;
             const mcFinal = precoFinal - custoTotal;
 
-            return { custoTotal, markup, valorSugerido, precoFinal, precoCheio, mcCheio, mcFinal, desconto };
+            return { custoTotal, markup, valorSugerido, precoFinal, precoCheioFalso, mcCheio, mcFinal, desconto };
         };
 
         window.processarBaixasAutomaticas = function() {
@@ -976,7 +997,7 @@
                         divBotoes = `
                             <div class="grid grid-cols-2 gap-2 w-full mt-2">
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
-                                    <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheio)})</span>
+                                    <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheioFalso)})</span>
                                     <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
                                 </button>
                                 <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
@@ -1040,19 +1061,25 @@
                                 <span class="text-sm font-black text-slate-600" id="markup-${p.id}">${pricing.markup.toFixed(2)}x</span>
                             </div>
                             <div class="flex flex-col justify-end pb-1 col-span-2">
-                                <span class="text-[9px] font-bold text-brand-600 uppercase mb-1">Valor Sugerido (Venda)</span>
+                                <span class="text-[9px] font-bold text-brand-600 uppercase mb-1">Valor Sugerido (Tabela)</span>
                                 <span class="text-lg font-black text-brand-700" id="valor-sugerido-${p.id}">${window.fmtMoeda(pricing.valorSugerido)}</span>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-brand-50 p-3 rounded-xl border border-brand-200">
-                            <div class="flex flex-col border-r border-brand-200 pr-2">
-                                <span class="text-[9px] font-bold text-emerald-700 uppercase mb-1">Inflar p/ Desconto (%)</span>
-                                <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="bg-white border border-emerald-300 rounded-lg p-2 text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 bg-brand-50 p-3 rounded-xl border border-brand-200">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-bold text-brand-800 uppercase mb-1">Valor Final Desejado (R$)</span>
+                                <input type="number" step="0.01" value="${p.precoFinal || pricing.valorSugerido.toFixed(2)}" oninput="window.updateProd('${p.id}', 'precoFinal', this.value)" class="bg-white border border-brand-300 rounded-lg p-2 text-sm font-bold text-brand-900 outline-none focus:ring-2 focus:ring-brand-500 transition">
                             </div>
-                            <div class="flex flex-col justify-center text-right pl-2">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Preço Cheio Falso</span>
-                                <span class="text-lg font-black text-slate-400 line-through" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheio)}</span>
+                            <div class="flex flex-col border-l border-brand-200 pl-2">
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="text-[9px] font-bold text-emerald-700 uppercase">Inflar p/ Desconto (%)</span>
+                                    <span class="text-[9px] font-bold text-slate-400 text-right">Preço Cheio Falso</span>
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="w-1/2 bg-white border border-emerald-300 rounded-lg p-2 text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                                    <span class="text-lg font-black text-slate-400 line-through w-1/2 text-right" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheioFalso)}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1104,6 +1131,8 @@
             if (!p.nome || p.nome.toString().trim() === '') return alert("Por favor, digite o NOME do produto."); 
             if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return alert("Por favor, insira um CUSTO Base válido.");
             
+            const pricing = window.calcularPricing(p);
+            p.precoFinal = pricing.precoFinal.toString();
             if (isNaN(parseFloat(p.desconto)) || p.desconto === '') p.desconto = '0';
             
             window.openModalConfirm("Confirmar Cadastro?", `Salvar "${p.nome}" no estoque?`, () => { 
@@ -1120,7 +1149,7 @@
                 window.dbProdutos[idx][field] = val; 
                 if (!window.dbProdutos[idx].isDraft) window.saveDB(); 
                 
-                if (['custo', 'custoVariavel', 'taxasVariaveis', 'margem', 'desconto'].includes(field)) {
+                if (['custo', 'custoVariavel', 'taxasVariaveis', 'margem', 'precoFinal', 'desconto'].includes(field)) {
                     const p = window.dbProdutos[idx];
                     const pricing = window.calcularPricing(p);
                     
@@ -1134,7 +1163,7 @@
                     if(elSugerido) elSugerido.textContent = window.fmtMoeda(pricing.valorSugerido);
 
                     const elPrecoCheio = document.getElementById(`preco-cheio-falso-${id}`);
-                    if(elPrecoCheio) elPrecoCheio.textContent = window.fmtMoeda(pricing.precoCheio);
+                    if(elPrecoCheio) elPrecoCheio.textContent = window.fmtMoeda(pricing.precoCheioFalso);
 
                     const btnContainer = document.getElementById(`btn-container-${id}`);
                     if (btnContainer && !p.isDraft) {
@@ -1142,7 +1171,7 @@
                             btnContainer.innerHTML = `
                                 <div class="grid grid-cols-2 gap-2 w-full mt-2">
                                     <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
-                                        <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheio)})</span>
+                                        <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheioFalso)})</span>
                                         <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
                                     </button>
                                     <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
@@ -1216,7 +1245,7 @@
             let labelTipo = '';
 
             if (pricing.desconto > 0) {
-                precoUsado = window.tempAddTipo === 'cheio' ? pricing.precoCheio : pricing.precoFinal;
+                precoUsado = window.tempAddTipo === 'cheio' ? pricing.precoCheioFalso : pricing.precoFinal;
                 labelTipo = window.tempAddTipo === 'cheio' ? 'Valor Cheio (Falso)' : 'Valor Final (C/ Desc)';
             } else {
                 precoUsado = pricing.precoFinal;
@@ -1251,7 +1280,7 @@
 
             if (pricing.desconto > 0) {
                 if (item.tipo === 'cheio') {
-                    precoUnidade = pricing.precoCheio;
+                    precoUnidade = pricing.precoCheioFalso;
                     mcUnidade = pricing.mcCheio;
                     labelDesconto = ' (Valor Cheio)';
                 } else {
