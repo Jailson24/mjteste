@@ -32,10 +32,6 @@
                         brand: {
                             50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 500: '#f43f5e',
                             600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337',
-                        },
-                        accent: {
-                            500: '#d97706',
-                            600: '#b45309',
                         }
                     }
                 }
@@ -75,8 +71,8 @@
 
     <!-- ================== TELAS DA APLICAÇÃO ================== -->
     
-    <!-- ESTOQUE -->
-    <div id="screen-estoque" class="hidden-screen">
+    <!-- ESTOQUE (Acesso Direto) -->
+    <div id="screen-estoque">
         <div id="tela-categorias" class="max-w-4xl mx-auto">
             <div class="flex items-center justify-between mb-6 bg-white p-5 rounded-3xl shadow-sm border border-brand-100">
                 <div><h1 class="text-2xl font-bold text-brand-900">Meu Estoque</h1><p class="text-sm text-brand-600">Selecione uma categoria</p></div>
@@ -265,17 +261,17 @@
     <!-- ESPAÇADOR FINAL -->
     <div class="h-32 w-full pointer-events-none"></div>
 
-    <!-- ================== MODAIS ================== -->
+    <!-- ================== TODOS OS MODAIS CENTRALIZADOS AQUI ================== -->
     
-    <!-- Modal Confirmação Blocado e Central (ÚNICA INSTÂNCIA) -->
+    <!-- Modal Confirmação Geral -->
     <div id="modal-confirmacao" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center hidden-screen p-4">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <div id="modal-confirm-icon" class="w-14 h-14 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all">
+            <div id="modal-confirm-icon" class="w-14 h-14 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4"><i class="fas fa-exclamation-triangle"></i></div>
             <h3 id="modal-confirm-titulo" class="text-xl font-bold text-center text-slate-800 mb-2">Atenção</h3>
             <p id="modal-confirm-texto" class="text-center text-slate-500 mb-6 text-sm"></p>
             <div class="flex gap-3">
                 <button type="button" onclick="window.fecharModalConfirm()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl active:scale-95 transition-all">Cancelar</button>
-                <button type="button" id="btn-confirm-yes" class="flex-1 bg-red-500 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all">Confirmar</button>
+                <button type="button" id="btn-confirm-yes" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all">Confirmar</button>
             </div>
         </div>
     </div>
@@ -524,6 +520,7 @@
         </div>
     </div>
 
+    <!-- Modal Novo Cliente -->
     <div id="modal-cliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center hidden-screen p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl my-auto">
             <h3 class="text-xl font-bold text-brand-900 mb-4">Novo Cliente</h3>
@@ -537,13 +534,14 @@
                 <input type="tel" id="cli-tel" placeholder="Telefone / Whats *" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-slate-700">
                 <textarea id="cli-endereco" placeholder="Endereço Completo" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none h-20 text-slate-700"></textarea>
                 <div class="flex gap-3 mt-2">
-                    <button type="button" onclick="window.fecharModalCliente()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl">Cancelar</button>
-                    <button type="button" onclick="window.salvarNovoCliente()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg">Salvar</button>
+                    <button type="button" onclick="window.fecharModalCliente()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl active:scale-95">Cancelar</button>
+                    <button type="button" onclick="window.salvarNovoCliente()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95">Salvar</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal Novo Fornecedor -->
     <div id="modal-fornecedor" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center hidden-screen p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl my-auto">
             <h3 class="text-xl font-bold text-brand-900 mb-4">Novo Fornecedor</h3>
@@ -557,13 +555,14 @@
                 <input type="email" id="forn-email" placeholder="E-mail" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-slate-700">
                 <textarea id="forn-detalhes" placeholder="Observações" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none h-20 text-slate-700"></textarea>
                 <div class="flex gap-3 mt-2">
-                    <button type="button" onclick="window.fecharModalFornecedor()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl">Cancelar</button>
-                    <button type="button" onclick="window.salvarNovoFornecedor()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg">Salvar</button>
+                    <button type="button" onclick="window.fecharModalFornecedor()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl active:scale-95">Cancelar</button>
+                    <button type="button" onclick="window.salvarNovoFornecedor()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95">Salvar</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal Resumo Estoque -->
     <div id="modal-resumo-estoque" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center hidden-screen p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
             <div class="flex justify-between items-center mb-5">
@@ -609,8 +608,8 @@
                     <option value="fa-star">Estrela / Novidade</option>
                 </select>
                 <div class="flex gap-3 mt-2">
-                    <button type="button" onclick="window.fecharModalNovaCategoria()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl">Cancelar</button>
-                    <button type="button" onclick="window.salvarNovaCategoria()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg">Salvar</button>
+                    <button type="button" onclick="window.fecharModalNovaCategoria()" class="flex-1 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl active:scale-95">Cancelar</button>
+                    <button type="button" onclick="window.salvarNovaCategoria()" class="flex-1 bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95">Salvar</button>
                 </div>
             </div>
         </div>
@@ -678,7 +677,7 @@
             const margem = parseFloat(p.margem) || 0; 
             const desconto = parseFloat(p.desconto) || 0;
 
-            // Custo Total (Base + Variável + Taxas)
+            // Custo Total = Custo Base + Custo Variável + (Custo Base * Taxas)
             const valorTaxas = custoBase * (taxasVar / 100);
             const custoTotal = custoBase + custoVar + valorTaxas;
             
@@ -730,8 +729,9 @@
         };
 
         window.inicializarApp = async function() {
-            document.getElementById('screen-login').classList.add('hidden-screen');
-            document.getElementById('screen-paywall').classList.add('hidden-screen');
+            // Garante ocultar qualquer tela não pertinente
+            document.getElementById('screen-login')?.classList.add('hidden-screen');
+            document.getElementById('screen-paywall')?.classList.add('hidden-screen');
             document.getElementById('screen-estoque').classList.remove('hidden-screen');
             
             const dadosStr = localStorage.getItem('loja_mariajose_local');
@@ -985,33 +985,39 @@
                 const div = document.createElement('div');
                 div.className = `bg-white p-5 rounded-3xl border border-brand-100 shadow-sm ${p.isDraft ? 'is-draft' : ''} ${isLowStock ? 'alert-low-stock' : ''} ${isParado ? 'alert-parado' : ''} mb-4`;
                 
+                // Botões Dinâmicos
                 let divBotoes = '';
                 if (p.isDraft) {
                     divBotoes = `
-                        <button type="button" onclick="window.salvarNovoItemNoEstoque('${p.id}')" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md flex justify-center items-center gap-2 active:scale-95 transition">
-                            <i class="fas fa-check-circle"></i> Confirmar Cadastro
-                        </button>
+                        <div class="w-full mt-4 border-t border-slate-100 pt-4">
+                            <button type="button" onclick="window.salvarNovoItemNoEstoque('${p.id}')" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-md flex justify-center items-center gap-2 active:scale-95 transition">
+                                <i class="fas fa-check-circle"></i> Confirmar Cadastro
+                            </button>
+                        </div>
                     `;
                 } else {
                     if (pricing.desconto > 0) {
                         divBotoes = `
-                            <div class="grid grid-cols-2 gap-2 w-full mt-2">
-                                <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
-                                    <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheioFalso)})</span>
-                                    <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
+                            <div class="grid grid-cols-2 gap-2 w-full mt-4 border-t border-slate-100 pt-4">
+                                <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
+                                    <span class="text-xs uppercase tracking-wider"><i class="fas fa-shopping-bag"></i> Sacola Cheia</span>
+                                    <span class="text-sm font-black">${window.fmtMoeda(pricing.precoCheioFalso)}</span>
+                                    <span class="text-[10px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-max text-center mt-1">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
                                 </button>
-                                <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
-                                    <span class="text-xs">C/ Desc (${window.fmtMoeda(pricing.precoFinal)})</span>
-                                    <span class="text-[9px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
+                                <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
+                                    <span class="text-xs uppercase tracking-wider"><i class="fas fa-tags"></i> Sacola c/ Desc</span>
+                                    <span class="text-sm font-black">${window.fmtMoeda(pricing.precoFinal)}</span>
+                                    <span class="text-[10px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-max text-center mt-1">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
                                 </button>
                             </div>
                         `;
                     } else {
                         divBotoes = `
-                            <div class="w-full mt-2">
-                                <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="w-full bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md flex flex-col justify-center items-center gap-1 active:scale-95 transition border border-brand-700">
-                                    <span class="text-xs"><i class="fas fa-cart-plus"></i> Adicionar (${window.fmtMoeda(pricing.precoFinal)})</span>
-                                    <span class="text-[9px] font-bold text-brand-200 bg-black/20 px-2 py-0.5 rounded w-max mx-auto px-4 text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
+                            <div class="w-full mt-4 border-t border-slate-100 pt-4">
+                                <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md flex flex-col justify-center items-center gap-1 active:scale-95 transition border border-brand-700">
+                                    <span class="text-xs uppercase tracking-wider"><i class="fas fa-cart-plus"></i> Adicionar à Sacola</span>
+                                    <span class="text-sm font-black">${window.fmtMoeda(pricing.precoFinal)}</span>
+                                    <span class="text-[10px] font-bold text-brand-200 bg-black/20 px-2 py-0.5 rounded w-max mx-auto px-4 text-center mt-1">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
                                 </button>
                             </div>
                         `;
@@ -1022,9 +1028,9 @@
                     <div class="flex justify-between items-start border-b border-slate-50 pb-3 mb-3">
                         <div class="w-full">
                             <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center mb-1">
-                                ${p.isDraft ? '<span class="text-blue-500 mr-2">[NOVO ITEM - PREENCHA]</span>' : 'Produto'} ${badgeParado}
+                                ${p.isDraft ? '<span class="text-blue-500 mr-2"><i class="fas fa-plus-circle"></i> NOVO ITEM</span>' : 'Produto'} ${badgeParado}
                             </span>
-                            <input type="text" id="input-nome-${p.id}" value="${p.nome}" oninput="window.updateProd('${p.id}', 'nome', this.value)" class="w-full bg-transparent font-bold text-slate-800 text-xl border-none p-0 outline-none" placeholder="Ex: Vestido Festa">
+                            <input type="text" id="input-nome-${p.id}" value="${p.nome}" onchange="window.updateProdFast('${p.id}', 'nome', this.value)" class="w-full bg-transparent font-bold text-slate-800 text-xl border-none p-0 outline-none" placeholder="Ex: Vestido Festa">
                         </div>
                         <button type="button" onclick="window.deleteProd('${p.id}')" class="text-slate-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>
                     </div>
@@ -1035,18 +1041,18 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3 pb-3 border-b border-slate-200">
                             <div class="flex flex-col">
                                 <span class="text-[9px] font-bold text-slate-500 uppercase mb-1">Custo Base (R$)</span>
-                                <input type="number" step="0.01" value="${p.custo}" oninput="window.updateProd('${p.id}', 'custo', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
+                                <input type="number" step="0.01" value="${p.custo}" oninput="window.updateProdFast('${p.id}', 'custo', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-[9px] font-bold text-slate-500 uppercase mb-1">Custo Var. (R$)</span>
-                                <input type="number" step="0.01" value="${p.custoVariavel || 0}" oninput="window.updateProd('${p.id}', 'custoVariavel', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
+                                <input type="number" step="0.01" value="${p.custoVariavel || 0}" oninput="window.updateProdFast('${p.id}', 'custoVariavel', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-[9px] font-bold text-slate-500 uppercase mb-1">Taxas Var. (%)</span>
-                                <input type="number" step="0.01" value="${p.taxasVariaveis || 0}" oninput="window.updateProd('${p.id}', 'taxasVariaveis', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
+                                <input type="number" step="0.01" value="${p.taxasVariaveis || 0}" oninput="window.updateProdFast('${p.id}', 'taxasVariaveis', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
                             </div>
                             <div class="flex flex-col justify-end pb-1">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total (Real)</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Custo Total</span>
                                 <span class="text-sm font-black text-slate-600" id="custo-total-${p.id}">${window.fmtMoeda(pricing.custoTotal)}</span>
                             </div>
                         </div>
@@ -1054,22 +1060,22 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3 pb-3 border-b border-slate-200">
                             <div class="flex flex-col">
                                 <span class="text-[9px] font-bold text-slate-500 uppercase mb-1">Margem Desejada (%)</span>
-                                <input type="number" step="0.01" value="${p.margem || 50}" oninput="window.updateProd('${p.id}', 'margem', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
+                                <input type="number" step="0.01" value="${p.margem || 50}" oninput="window.updateProdFast('${p.id}', 'margem', this.value)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm font-bold text-slate-700 outline-none focus:border-brand-500 transition">
                             </div>
                             <div class="flex flex-col justify-end pb-1 hidden sm:flex">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase mb-1">Markup Divisor</span>
                                 <span class="text-sm font-black text-slate-600" id="markup-${p.id}">${pricing.markup.toFixed(2)}x</span>
                             </div>
                             <div class="flex flex-col justify-end pb-1 col-span-2">
-                                <span class="text-[9px] font-bold text-brand-600 uppercase mb-1">Valor Sugerido (Tabela)</span>
+                                <span class="text-[9px] font-bold text-brand-600 uppercase mb-1">Valor Sugerido</span>
                                 <span class="text-lg font-black text-brand-700" id="valor-sugerido-${p.id}">${window.fmtMoeda(pricing.valorSugerido)}</span>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 bg-brand-50 p-3 rounded-xl border border-brand-200">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 bg-white p-3 rounded-xl border border-brand-200 shadow-sm">
                             <div class="flex flex-col">
                                 <span class="text-[9px] font-bold text-brand-800 uppercase mb-1">Valor Final Desejado (R$)</span>
-                                <input type="number" step="0.01" value="${p.precoFinal || pricing.valorSugerido.toFixed(2)}" oninput="window.updateProd('${p.id}', 'precoFinal', this.value)" class="bg-white border border-brand-300 rounded-lg p-2 text-sm font-bold text-brand-900 outline-none focus:ring-2 focus:ring-brand-500 transition">
+                                <input type="number" step="0.01" value="${p.precoFinal || pricing.valorSugerido.toFixed(2)}" oninput="window.updateProdFast('${p.id}', 'precoFinal', this.value)" class="bg-brand-50 border border-brand-100 rounded-lg p-2 text-sm font-bold text-brand-900 outline-none focus:ring-2 focus:ring-brand-500 transition">
                             </div>
                             <div class="flex flex-col border-l border-brand-200 pl-2">
                                 <div class="flex justify-between items-end mb-1">
@@ -1077,22 +1083,23 @@
                                     <span class="text-[9px] font-bold text-slate-400 text-right">Preço Cheio Falso</span>
                                 </div>
                                 <div class="flex gap-2 items-center">
-                                    <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProd('${p.id}', 'desconto', this.value)" class="w-1/2 bg-white border border-emerald-300 rounded-lg p-2 text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                                    <input type="number" step="0.01" value="${p.desconto || 0}" oninput="window.updateProdFast('${p.id}', 'desconto', this.value)" class="w-1/2 bg-white border border-emerald-300 rounded-lg p-2 text-sm font-bold text-emerald-700 outline-none focus:ring-2 focus:ring-emerald-500 transition">
                                     <span class="text-lg font-black text-slate-400 line-through w-1/2 text-right" id="preco-cheio-falso-${p.id}">${window.fmtMoeda(pricing.precoCheioFalso)}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="flex flex-col gap-3 mt-4">
-                        <div class="bg-white p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-1 w-full max-w-xs mx-auto shadow-sm">
+                    <div class="flex flex-col mt-4">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-4 shadow-sm w-full max-w-sm mx-auto">
                             <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider ml-2">Estoque Físico</span>
-                            <div class="flex items-center gap-2">
-                                <button type="button" onclick="window.modEstoque('${p.id}', -1)" class="w-8 h-8 bg-slate-100 rounded-full text-slate-600 font-bold flex items-center justify-center hover:bg-slate-200">-</button>
-                                <span class="font-black text-lg text-slate-800 w-8 text-center" id="estoque-display-${p.id}">${p.estoque}</span>
-                                <button type="button" onclick="window.modEstoque('${p.id}', 1)" class="w-8 h-8 bg-emerald-500 text-white rounded-full font-bold flex items-center justify-center hover:bg-emerald-600">+</button>
+                            <div class="flex items-center gap-3">
+                                <button type="button" onclick="window.modEstoque('${p.id}', -1)" class="w-10 h-10 bg-slate-100 rounded-full text-slate-600 font-bold flex items-center justify-center hover:bg-slate-200 text-lg shadow-sm">-</button>
+                                <span class="font-black text-2xl text-slate-800 w-10 text-center" id="estoque-display-${p.id}">${p.estoque}</span>
+                                <button type="button" onclick="window.modEstoque('${p.id}', 1)" class="w-10 h-10 bg-emerald-500 text-white rounded-full font-bold flex items-center justify-center hover:bg-emerald-600 text-lg shadow-sm">+</button>
                             </div>
                         </div>
+                        
                         <div id="btn-container-${p.id}">
                             ${divBotoes}
                         </div>
@@ -1128,29 +1135,26 @@
             const inputNome = document.getElementById(`input-nome-${id}`);
             if (inputNome && inputNome.value) p.nome = inputNome.value;
 
-            if (!p.nome || p.nome.toString().trim() === '') return alert("Por favor, digite o NOME do produto."); 
-            if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return alert("Por favor, insira um CUSTO Base válido.");
+            if (!p.nome || p.nome.toString().trim() === '') return window.showToast("Digite o Nome do Produto!"); 
+            if (p.custo === '' || isNaN(parseFloat(p.custo)) || parseFloat(p.custo) < 0) return window.showToast("Insira um Custo Base válido!");
             
-            const pricing = window.calcularPricing(p);
-            p.precoFinal = pricing.precoFinal.toString();
             if (isNaN(parseFloat(p.desconto)) || p.desconto === '') p.desconto = '0';
             
-            window.openModalConfirm("Confirmar Cadastro?", `Salvar "${p.nome}" no estoque?`, () => { 
-                delete p.isDraft; 
-                window.saveDB(); 
-                window.renderProdutos(); 
-                window.showToast("Adicionado à vitrine!"); 
-            }, 'emerald'); 
+            // Removido o modal de confirmação para ser mais rápido e não congelar a tela.
+            p.isDraft = false; 
+            window.saveDB(); 
+            window.renderProdutos(); 
+            window.showToast("Produto Salvo com Sucesso!"); 
         };
         
-        window.updateProd = function(id, field, val) { 
+        // Atualiza dinamicamente sem piscar o input
+        window.updateProdFast = function(id, field, val) { 
             const idx = window.dbProdutos.findIndex(p => p.id === id); 
             if (idx > -1) { 
                 window.dbProdutos[idx][field] = val; 
-                if (!window.dbProdutos[idx].isDraft) window.saveDB(); 
+                const p = window.dbProdutos[idx];
                 
                 if (['custo', 'custoVariavel', 'taxasVariaveis', 'margem', 'precoFinal', 'desconto'].includes(field)) {
-                    const p = window.dbProdutos[idx];
                     const pricing = window.calcularPricing(p);
                     
                     const elCustoTotal = document.getElementById(`custo-total-${id}`);
@@ -1169,29 +1173,37 @@
                     if (btnContainer && !p.isDraft) {
                         if (pricing.desconto > 0) {
                             btnContainer.innerHTML = `
-                                <div class="grid grid-cols-2 gap-2 w-full mt-2">
-                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
-                                        <span class="text-xs">Add Cheio (${window.fmtMoeda(pricing.precoCheioFalso)})</span>
-                                        <span class="text-[9px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
+                                <div class="grid grid-cols-2 gap-2 w-full mt-4 border-t border-slate-100 pt-4">
+                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="bg-slate-800 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-slate-900">
+                                        <span class="text-xs uppercase tracking-wider"><i class="fas fa-shopping-bag"></i> Sacola Cheia</span>
+                                        <span class="text-sm font-black">${window.fmtMoeda(pricing.precoCheioFalso)}</span>
+                                        <span class="text-[10px] font-bold text-slate-300 bg-black/40 px-2 py-0.5 rounded w-max text-center mt-1">MC: ${window.fmtMoeda(pricing.mcCheio)}</span>
                                     </button>
-                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
-                                        <span class="text-xs">C/ Desc (${window.fmtMoeda(pricing.precoFinal)})</span>
-                                        <span class="text-[9px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-full text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
+                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'desconto')" class="bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition flex flex-col justify-center items-center gap-1 border border-brand-700">
+                                        <span class="text-xs uppercase tracking-wider"><i class="fas fa-tags"></i> Sacola c/ Desc</span>
+                                        <span class="text-sm font-black">${window.fmtMoeda(pricing.precoFinal)}</span>
+                                        <span class="text-[10px] font-bold text-brand-100 bg-black/20 px-2 py-0.5 rounded w-max text-center mt-1">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
                                     </button>
                                 </div>
                             `;
                         } else {
                             btnContainer.innerHTML = `
-                                <div class="w-full mt-2">
-                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="w-full bg-brand-600 text-white font-bold py-2 rounded-xl shadow-md flex flex-col justify-center items-center gap-1 active:scale-95 transition border border-brand-700">
-                                        <span class="text-xs"><i class="fas fa-cart-plus"></i> Adicionar (${window.fmtMoeda(pricing.precoFinal)})</span>
-                                        <span class="text-[9px] font-bold text-brand-200 bg-black/20 px-2 py-0.5 rounded w-max mx-auto px-4 text-center">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
+                                <div class="w-full mt-4 border-t border-slate-100 pt-4">
+                                    <button type="button" onclick="window.abrirModalAddCarrinho('${p.id}', 'cheio')" class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md flex flex-col justify-center items-center gap-1 active:scale-95 transition border border-brand-700">
+                                        <span class="text-xs uppercase tracking-wider"><i class="fas fa-cart-plus"></i> Adicionar à Sacola</span>
+                                        <span class="text-sm font-black">${window.fmtMoeda(pricing.precoFinal)}</span>
+                                        <span class="text-[10px] font-bold text-brand-200 bg-black/20 px-2 py-0.5 rounded w-max mx-auto px-4 text-center mt-1">MC: ${window.fmtMoeda(pricing.mcFinal)}</span>
                                     </button>
                                 </div>
                             `;
                         }
                     }
                 }
+                
+                clearTimeout(window.saveTimeout);
+                window.saveTimeout = setTimeout(() => {
+                    if (!p.isDraft) window.saveDB();
+                }, 1000);
             } 
         };
         
@@ -1200,14 +1212,16 @@
             if (idx > -1) { 
                 const p = window.dbProdutos[idx]; 
                 const novaQtd = Math.max(0, (parseInt(p.estoque) || 0) + delta);
+                
                 if (p.isDraft) { 
                     p.estoque = novaQtd.toString(); 
                     const el = document.getElementById(`estoque-display-${id}`);
                     if(el) el.textContent = p.estoque;
                     return; 
                 }
+
                 const acao = delta > 0 ? "Adicionar ao" : "Reduzir do";
-                window.openModalConfirm(`${acao} Estoque?`, `Deseja confirmar a quantidade para ${novaQtd} itens?`, () => {
+                window.openModalConfirm(`${acao} Estoque?`, `Deseja confirmar a quantidade física para ${novaQtd} itens?`, () => {
                     p.estoque = novaQtd.toString(); 
                     window.saveDB(); 
                     const el = document.getElementById(`estoque-display-${id}`);
@@ -1246,7 +1260,7 @@
 
             if (pricing.desconto > 0) {
                 precoUsado = window.tempAddTipo === 'cheio' ? pricing.precoCheioFalso : pricing.precoFinal;
-                labelTipo = window.tempAddTipo === 'cheio' ? 'Valor Cheio (Falso)' : 'Valor Final (C/ Desc)';
+                labelTipo = window.tempAddTipo === 'cheio' ? 'Valor Cheio Falso' : 'Valor c/ Desconto';
             } else {
                 precoUsado = pricing.precoFinal;
                 labelTipo = 'Valor Final';
